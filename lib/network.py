@@ -1,6 +1,8 @@
 import requests as http
 import time
 
+song_url = '127.0.0.1:5000/get_next_song'
+
 def get_next_song():
     try:
         response = http.get(song_url)
