@@ -35,10 +35,14 @@ def play_loop(queue, spotify):
                 skip = True
                 pause_time = 0
                 paused = False
+            else:
+                print('given command not understood')
+
         if (time.time() - start_time + pause_time >= duration and not paused) or skip:
             data = get_next_song()
             duration = data['duration'] / 1000.0
             spotify.play_song(data['track_id'])
+            print('Playing ' + data['name'])
             start_time = time.time()
             pause_time = 0
             skip = False
