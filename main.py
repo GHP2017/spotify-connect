@@ -1,41 +1,36 @@
 import requests as http
 from lib.connect import SpotifyConnect
 from lib.network import get_next_song
-from server import auth_server
+from multiprocessing import Process, Queue
 from subprocess import Popen
+from lib.play import play_loop
 import time
 import os
+import sys
 
 os.environ['TOKEN'] = ''
-proc = Popen(['python server.py'], shell=True,
-             stdin=None, stdout=None, stderr=None, close_fds=True)
-#auth_server.run(host='0.0.0.0')
+Popen(['python', 'server.py'])
+url = 'http://127.0.0.1:5001/info'
 
-while os.environ['TOKEN'] == '':
-    print('got here?')
+
+token = ''
+
+while token == '':
+    print('waiting...')
     time.sleep(5)
-
-##TODO:
-# get token from server. make it a shutdown endpoint that returns the token
+    resp = http.get(url).json()
+    token = resp.get('token', '')
 
 spotify = SpotifyConnect(token)
 
-# establish a connection
-data = get_next_song()
-duration = data['duration'] / 1000.0
-start_time = time.time()
-spotify.play_song(data['track_id'])
-playing = True
-
-# main loop
-while True:
-    if time.time() - start_time >= duration:
-        data = get_next_song()
-        duration = data['duration'] / 1000.0
-        spotify.play_song(data['track_id'])
-        start_time = time.time()
-        pause_time = 0
-        skip = False
-        playing = True
-
-
+if __name__ == '__main__':
+    q = Queue()
+    p = Process(target=play_loop, args=(q, spotify))
+    p.start()
+    while True:
+        a = input()
+        if a == 'stop':
+            p.join()
+            sys.exit()
+        else:
+            q.put(a)

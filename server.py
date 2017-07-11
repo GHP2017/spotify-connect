@@ -1,10 +1,15 @@
 from flask import Flask, redirect, request
 import os
 import requests as http
+import json
+import logging
+
+logging.basicConfig(filename='debug.log',level=logging.DEBUG)
+
 auth_server = Flask(__name__)
 client_id = 'f3b0c51df1124cc985fd4012b6d55d95'
 client_secret = 'e54ca2e0bf394944a1247830443dba3c'
-redirect_uri = 'http://127.0.0.1:5000/callback'
+redirect_uri = 'http://127.0.0.1:5001/callback'
 authorize_uri = 'https://accounts.spotify.com/authorize'
 token_uri = 'https://accounts.spotify.com/api/token'
 
@@ -22,8 +27,8 @@ def callback():
         'client_id': client_id,
         'client_secret': client_secret
     })
-    print('token result')
-    print(result.json())
+    logging.info('token result')
+    logging.info(result.json())
     dict = result.json()
 
     token = dict['access_token']
@@ -42,10 +47,13 @@ def shutdown_server():
         raise RuntimeError('Not running with the Werkzeug Server')
     func()
 
-@auth_server.route('/shutdown', methods=['GET'])
+@auth_server.route('/info', methods=['GET'])
 def shutdown():
-    shutdown_server()
-    return 'Server shutting down...'
+    if os.environ['TOKEN'] != '':
+        shutdown_server()
+        return json.dumps({'token': os.environ['TOKEN']})
+    else:
+        return json.dumps({'msg': 'not ready'})
 
 if __name__ == "__main__":
-    auth_server.run()
+    auth_server.run(port=5001)
