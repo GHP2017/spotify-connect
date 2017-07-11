@@ -25,12 +25,12 @@ def play_loop(queue, spotify):
                 spotify.pause()
                 paused = True
                 paused_at = time.time()
-            if user_input == 'resume':
+            elif user_input == 'resume':
                 # resume the playback
                 spotify.resume()
                 paused = False
                 pause_time = time.time() - paused_at
-            if user_input == 'skip':
+            elif user_input == 'skip':
                 # skip to next song
                 skip = True
                 pause_time = 0
